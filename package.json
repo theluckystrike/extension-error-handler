@@ -1,0 +1,38 @@
+{
+    "name": "extension-error-handler",
+    "version": "0.1.0",
+    "description": "Error handling for Chrome extensions — global error boundary, crash reporting, error storage, retry logic, and user-friendly error UI. Zero dependencies.",
+    "author": "Zovo <hello@zovo.one>",
+    "license": "MIT",
+    "keywords": [
+        "chrome-extension",
+        "error-handler",
+        "error-boundary",
+        "crash-report",
+        "manifest-v3",
+        "browser-extension",
+        "error-tracking",
+        "retry",
+        "sentry-alternative"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/theluckystrike/extension-error-handler.git"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "test": "jest",
+        "prepublishOnly": "npm run build"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.260",
+        "typescript": "^5.3.3"
+    }
+}
