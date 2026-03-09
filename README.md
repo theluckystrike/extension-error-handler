@@ -202,6 +202,191 @@ handler.onUnhandled(async (e) => {
 | `withDelay(fn, maxRetries, delayMs)` | Retry with fixed delay between attempts |
 | `until(fn, condition, maxAttempts, delayMs)` | Retry until condition returns `true` |
 
+## Advanced Usage
+
+### Custom Reporters
+
+Create custom error reporters to send errors to external services like Sentry, LogRocket, or your own backend:
+
+```typescript
+import { ErrorHandler, ErrorStorage } from 'extension-error-handler';
+
+class SentryReporter {
+  private dsn: string;
+  
+  constructor(dsn: string) {
+    this.dsn = dsn;
+  }
+  
+  async report(error: Error): Promise<void> {
+    await fetch(this.dsn, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: error.message,
+        stack: error.stack,
+        timestamp: Date.now(),
+        userAgent: navigator.userAgent
+      })
+    });
+  }
+}
+
+const reporter = new SentryReporter('https://sentry.io/api/projects/your-project');
+const handler = new ErrorHandler();
+handler.install();
+
+// Send errors to Sentry
+handler.onUnhandled(async (e) => {
+  await reporter.report(e);
+});
+```
+
+### Error Grouping
+
+Group similar errors to reduce noise and focus on unique issues:
+
+```typescript
+import { ErrorHandler, ErrorStorage } from 'extension-error-handler';
+
+interface ErrorGroup {
+  key: string;
+  count: number;
+  firstSeen: number;
+  lastSeen: number;
+  errors: Error[];
+}
+
+// Generate grouping key from error characteristics
+function getGroupKey(error: Error): string {
+  // Group by error type and first line of stack trace
+  const stackLine = error.stack?.split('\n')[1]?.trim() || '';
+  return `${error.name}:${error.message.substring(0, 50)}:${stackLine.substring(0, 50)}`;
+}
+
+const errorGroups = new Map<string, ErrorGroup>();
+
+handler.onUnhandled(async (e) => {
+  const key = getGroupKey(e);
+  const existing = errorGroups.get(key);
+  
+  if (existing) {
+    existing.count++;
+    existing.lastSeen = Date.now();
+    existing.errors.push(e);
+    console.log(`Error group "${key}" occurred ${existing.count} times`);
+  } else {
+    errorGroups.set(key, {
+      key,
+      count: 1,
+      firstSeen: Date.now(),
+      lastSeen: Date.now(),
+      errors: [e]
+    });
+  }
+  
+  // Only alert on new error groups or high-frequency issues
+  if (!existing || existing.count > 10) {
+    await notifyTeam(key, existing?.count || 1);
+  }
+});
+```
+
+### Rate Limiting
+
+Prevent error floods from overwhelming your reporting system:
+
+```typescript
+import { ErrorHandler } from 'extension-error-handler';
+
+class RateLimiter {
+  private tokens: number;
+  private lastRefill: number;
+  private readonly maxTokens: number;
+  private readonly refillRate: number; // tokens per second
+  
+  constructor(maxTokens: number = 10, refillRate: number = 1) {
+    this.maxTokens = maxTokens;
+    this.tokens = maxTokens;
+    this.refillRate = refillRate;
+    this.lastRefill = Date.now();
+  }
+  
+  private refill(): void {
+    const now = Date.now();
+    const elapsed = (now - this.lastRefill) / 1000;
+    this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate);
+    this.lastRefill = now;
+  }
+  
+  tryConsume(tokens: number = 1): boolean {
+    this.refill();
+    if (this.tokens >= tokens) {
+      this.tokens -= tokens;
+      return true;
+    }
+    return false;
+  }
+}
+
+const rateLimiter = new RateLimiter(10, 1); // 10 initial, 1 per second
+const handler = new ErrorHandler();
+handler.install();
+
+handler.onUnhandled(async (e) => {
+  if (rateLimiter.tryConsume()) {
+    await sendToAnalytics(e);
+  } else {
+    console.warn('Rate limited - error not sent to analytics');
+  }
+});
+```
+
+### Integration with Chrome Background Script
+
+Error handling works across all extension contexts:
+
+```typescript
+// background.ts
+import { ErrorHandler, ErrorStorage } from 'extension-error-handler';
+
+const handler = new ErrorHandler();
+handler.install();
+
+// Handle errors from content scripts via message passing
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'error') {
+    const error = new Error(message.error.message);
+    error.name = message.error.name;
+    error.stack = message.error.stack;
+    handler.handle(error);
+  }
+});
+
+// Content script: send errors to background
+try {
+  await riskyOperation();
+} catch (e) {
+  chrome.runtime.sendMessage({
+    type: 'error',
+    error: {
+      name: e.name,
+      message: e.message,
+      stack: e.stack
+    }
+  });
+}
+```
+
+### Best Practices
+
+1. **Install Early**: Call `handler.install()` at the very start of your extension
+2. **Handle Types Specifically**: Register handlers for expected error types
+3. **Always Have Fallback**: Set an `onUnhandled` handler for unexpected errors
+4. **Persist Critical Errors**: Use `ErrorStorage` for errors that need post-mortem analysis
+5. **Combine with Retry**: Use `RetryHelper` for network operations
+6. **Test Error Paths**: Verify error handling works in your extension's context
+
 ## Project Structure
 
 ```
