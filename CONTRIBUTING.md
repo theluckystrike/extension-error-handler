@@ -1,81 +1,152 @@
-# Contributing to extension-error-handler
+# Contributing to Extension Error Handler
 
-Thank you for your interest in contributing. This project welcomes contributions from the community.
+Thank you for your interest in contributing to Extension Error Handler! This document provides guidelines and instructions for contributing.
 
-## REPORTING ISSUES
+## Code of Conduct
 
-When reporting bugs or requesting features, please use the GitHub issue templates. Include the following:
+By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
 
-- A clear description of the issue or feature request
-- Steps to reproduce (for bugs)
-- Environment details (Chrome version, manifest version)
-- Any relevant error messages or stack traces
+## How to Contribute
 
-## HOW TO FORK AND CLONE
+### 1. Fork the Repository
 
-1. Fork the repository by clicking the "Fork" button on GitHub
-2. Clone your forked repository:
+Click the "Fork" button on the repository page to create your own copy of the repository.
+
+### 2. Clone Your Fork
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/extension-error-handler.git
 cd extension-error-handler
 ```
 
-3. Add the original repository as a remote:
+### 3. Create a Feature Branch
+
+Create a new branch for your feature or bug fix:
 
 ```bash
-git remote add upstream https://github.com/theluckystrike/extension-error-handler.git
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/bug-description
 ```
 
-4. Keep your fork synced:
+### 4. Make Your Changes
 
-```bash
-git fetch upstream
-git checkout main
-git merge upstream/main
-```
+Make your changes to the codebase. Be sure to:
 
-## DEVELOPMENT WORKFLOW
+- Follow the existing code style and conventions
+- Add tests for new functionality
+- Update documentation as needed
+- Write clear, descriptive commit messages
 
-1. Fork the repository
-2. Create a feature branch from `main`
-3. Make your changes
-4. Ensure tests pass (if any exist)
-5. Submit a pull request
+### 5. Run Tests
 
-### Building
+Before submitting a pull request, make sure all tests pass:
 
 ```bash
 npm install
-npm run build
-```
-
-### Testing
-
-```bash
 npm test
 ```
 
-## CODE STYLE
+### 6. Commit Your Changes
 
-- Use TypeScript with strict mode enabled
-- Follow existing code patterns in the repository
-- Use meaningful variable and function names
-- Add JSDoc comments for public APIs
-- Keep functions focused and small
+```bash
+git add .
+git commit -m "Add your descriptive commit message"
+```
 
-## TESTING
+### 7. Push Your Branch
 
-Before submitting a pull request:
+Push your changes to your fork:
 
-1. Run the build to ensure no TypeScript errors
-2. Test your changes in a Chrome extension environment
-3. Verify ErrorHandler, ErrorStorage, and RetryHelper work correctly
+```bash
+git push origin feature/your-feature-name
+```
 
-## LICENSE
+### 8. Create a Pull Request
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+1. Navigate to the original repository
+2. Click "New Pull Request"
+3. Select your branch and review your changes
+4. Fill in the PR template with details about your changes
+5. Submit the pull request
 
----
+## Development Setup
 
-Built at [zovo.one](https://zovo.one) by [theluckystrike](https://github.com/theluckystrike)
+```bash
+# Clone the repo
+git clone https://github.com/theluckystrike/extension-error-handler.git
+cd extension-error-handler
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Run tests
+npm test
+
+# Run linter
+npm run lint
+```
+
+## Project Structure
+
+```
+extension-error-handler/
+├── src/
+│   ├── index.ts         # Main exports
+│   ├── handler.ts      # ErrorHandler class & ErrorStorage
+│   ├── retry.ts        # RetryHelper class
+│   └── storage.ts      # Storage utilities
+├── tests/              # Test files
+├── package.json
+└── tsconfig.json
+```
+
+## Commit Message Guidelines
+
+- Use clear, descriptive commit messages
+- Start with a verb (Add, Fix, Update, Remove, etc.)
+- Keep the first line under 72 characters
+- Reference issues when applicable
+
+Example:
+```
+Add retry logic with exponential backoff
+
+Implemented RetryHelper.withBackoff() method that doubles
+delay between each retry attempt. Added tests for edge cases.
+
+Fixes #42
+```
+
+## Reporting Bugs
+
+When reporting bugs, please include:
+
+1. A clear description of the issue
+2. Steps to reproduce the bug
+3. Expected behavior vs actual behavior
+4. Your environment (OS, Node version, browser, etc.)
+5. Any relevant error messages or logs
+
+## Suggesting Features
+
+We welcome feature suggestions! When proposing a new feature:
+
+1. Explain the problem you're trying to solve
+2. Describe your proposed solution
+3. Consider alternatives
+4. Explain why this feature would be beneficial
+
+## Questions?
+
+If you have questions about contributing, feel free to:
+
+- Open an issue for discussion
+- Reach out through GitHub discussions
+
+## Thank You
+
+Thank you for taking the time to contribute! Your efforts help make this project better for everyone.
